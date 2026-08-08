@@ -35,7 +35,7 @@ function Index() {
   }
 
   return (
-    <div className="devi-circuit-bg relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10 text-neutral-100">
+ <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10 text-neutral-100 bg-[url('/fondo.jpg')] bg-cover bg-center bg-no-repeat">
       {/* Ambient glow */}
       <div className="pointer-events-none absolute -top-32 left-1/2 h-96 w-[42rem] -translate-x-1/2 rounded-full opacity-40 blur-3xl"
            style={{ background: "radial-gradient(closest-side, #c9a84c55, transparent)" }} />
@@ -43,27 +43,24 @@ function Index() {
       <div className="devi-fade-up relative w-full max-w-md">
         {/* Brand */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-xl border border-[#c9a84c]/40 bg-black/40 shadow-[0_0_30px_-8px_#c9a84c88]">
-            <Gamepad2 className="h-7 w-7" style={{ color: "#f0d78c" }} />
-          </div>
+          
           <h1
             className="text-4xl font-black tracking-[0.35em]"
             style={{ fontFamily: "'Orbitron', sans-serif", color: "#f0d78c", textShadow: "0 0 18px #c9a84c66" }}
           >
-            DEVI
+            DEV-I
           </h1>
           <p className="mt-2 text-xs uppercase tracking-[0.4em] text-[#c9a84c]/70" style={{ fontFamily: "'Rajdhani', sans-serif" }}>
-            Device Engagement Virtual
+            Device Engagement Virtual 
+          </p>
+          <p className="mt-2 text-xs uppercase tracking-[0.4em] text-[#c9a84c]/70" style={{ fontFamily: "'Rajdhani', sans-serif" }}>
+            Interfaz
           </p>
         </div>
 
         {/* Card */}
         <div className="devi-hud-corner rounded-2xl border border-[#c9a84c]/25 bg-neutral-950/70 p-8 backdrop-blur-xl shadow-[0_30px_80px_-30px_#000,0_0_40px_-20px_#c9a84c88]">
-          <h2 className="mb-1 text-lg font-semibold text-neutral-100" style={{ fontFamily: "'Rajdhani', sans-serif", letterSpacing: "0.1em" }}>
-            INICIAR SESIÓN
-          </h2>
-          <p className="mb-6 text-sm text-neutral-400">Ingresa tus credenciales para acceder al panel.</p>
-
+          
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-xs uppercase tracking-widest text-[#c9a84c]/80">Correo o usuario</Label>
@@ -124,7 +121,7 @@ function Index() {
         </div>
 
         <p className="mt-6 text-center text-[10px] uppercase tracking-[0.4em] text-neutral-600">
-          v1.0 · Modo demo
+          Developed BY Andrés Aguiar
         </p>
       </div>
 

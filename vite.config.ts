@@ -1,9 +1,9 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
-  tanstackStart: {
-    // Mantenemos la configuración del servidor que ya funciona
-    server: { entry: "server" },
-    // Eliminamos la línea "router" por completo para que el sistema busque en la raíz de src
+  server: {
+    host: '0.0.0.0', // Esto es lo que permite la conexión externa
+    port: 5173,
   },
-});
+  // ... resto de tu configuración
+})
