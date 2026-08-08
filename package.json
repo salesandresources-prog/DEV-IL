@@ -3,7 +3,7 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
- "scripts": {
+  "scripts": {
     "dev": "vite dev",
     "build": "vinxi build",
     "preview": "vite preview",
@@ -81,6 +81,7 @@
     "prettier": "^3.7.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
+    "vinxi": "^0.5.11",
     "vite": "^8.0.16"
   }
 }
