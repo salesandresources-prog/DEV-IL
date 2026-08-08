@@ -4,8 +4,10 @@ export default defineConfig({
   tanstackStart: false,
   nitro: false,
   server: {
-    host: '0.0.0.0', // Esto es lo que permite la conexión externa
+    host: '0.0.0.0',
     port: 5173,
   },
-  // ... resto de tu configuración
+  build: {
+    outDir: 'dist',
+  },
 })
