@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Gamepad2, Mail, Lock, ArrowRight } from "lucide-react";
+import { Mail, Lock, ArrowRight, Loader2, AlertCircle } from "lucide-react";
+import { login, isAuthenticated } from "@/lib/devi-auth";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -21,17 +22,34 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
   const [forgotOpen, setForgotOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  function handleSubmit(e: React.FormEvent) {
+  // Si ya está autenticado, redirigir al dashboard
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigate({ to: "/dashboard" });
+    }
+  }, [navigate]);
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email || !password) return;
+    if (!user || !password) return;
+
+    setLoading(true);
+    setError("");
+
     try {
-      window.localStorage.setItem("devi.user", email);
-    } catch {}
-    navigate({ to: "/dashboard" });
+      await login(user, password);
+      navigate({ to: "/dashboard" });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al iniciar sesión");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -61,19 +79,28 @@ function Index() {
         {/* Card */}
         <div className="devi-hud-corner rounded-2xl border border-[#c9a84c]/25 bg-neutral-950/70 p-8 backdrop-blur-xl shadow-[0_30px_80px_-30px_#000,0_0_40px_-20px_#c9a84c88]">
           
+          {/* Error message */}
+          {error && (
+            <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-950/50 px-4 py-3 text-sm text-red-300">
+              <AlertCircle className="h-4 w-4 shrink-0 text-red-400" />
+              <span>{error}</span>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-xs uppercase tracking-widest text-[#c9a84c]/80">Correo o usuario</Label>
+              <Label htmlFor="user" className="text-xs uppercase tracking-widest text-[#c9a84c]/80">Correo o usuario</Label>
               <div className="relative">
                 <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#c9a84c]/70" />
                 <Input
-                  id="email"
+                  id="user"
                   type="text"
                   autoComplete="username"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="jugador@devi.com"
+                  value={user}
+                  onChange={(e) => { setUser(e.target.value); setError(""); }}
+                  placeholder="usuario o correo"
                   className="h-11 border-[#c9a84c]/25 bg-black/50 pl-10 text-neutral-100 placeholder:text-neutral-500 focus-visible:border-[#c9a84c] focus-visible:ring-[#c9a84c]/40"
+                  disabled={loading}
                   required
                 />
               </div>
@@ -88,9 +115,10 @@ function Index() {
                   type="password"
                   autoComplete="current-password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => { setPassword(e.target.value); setError(""); }}
                   placeholder="••••••••"
                   className="h-11 border-[#c9a84c]/25 bg-black/50 pl-10 text-neutral-100 placeholder:text-neutral-500 focus-visible:border-[#c9a84c] focus-visible:ring-[#c9a84c]/40"
+                  disabled={loading}
                   required
                 />
               </div>
@@ -99,12 +127,22 @@ function Index() {
             <div className="pt-2">
               <button
                 type="submit"
-                className="devi-float group relative flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-xl border border-[#c9a84c]/60 bg-gradient-to-r from-[#c9a84c] via-[#e6c66a] to-[#c9a84c] font-semibold uppercase tracking-[0.25em] text-neutral-900 transition-transform duration-300 hover:scale-[1.04] active:scale-[0.98]"
+                disabled={loading}
+                className="devi-float group relative flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-xl border border-[#c9a84c]/60 bg-gradient-to-r from-[#c9a84c] via-[#e6c66a] to-[#c9a84c] font-semibold uppercase tracking-[0.25em] text-neutral-900 transition-transform duration-300 hover:scale-[1.04] active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none"
                 style={{ fontFamily: "'Rajdhani', sans-serif" }}
               >
                 <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                <span className="relative">Ingresar</span>
-                <ArrowRight className="relative h-4 w-4 transition-transform group-hover:translate-x-1" />
+                {loading ? (
+                  <>
+                    <Loader2 className="relative h-4 w-4 animate-spin" />
+                    <span className="relative">Verificando…</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="relative">Ingresar</span>
+                    <ArrowRight className="relative h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </>
+                )}
               </button>
             </div>
 

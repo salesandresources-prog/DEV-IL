@@ -39,6 +39,7 @@ import { loadPatients, type Patient } from "@/lib/devi-patients";
 import { loadAppointments, type Appointment, type EnrichedAppointment } from "@/lib/devi-appointments";
 import { loadHistorias, type HistoriaClinica } from "@/lib/devi-historias";
 import { getApiBase } from "@/lib/api";
+import { getUser, logout as authLogout, isAuthenticated } from "@/lib/devi-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSwipe } from "@/hooks/use-swipe";
 
@@ -133,19 +134,23 @@ function Dashboard() {
   /* ─── Load data ─── */
 
   useEffect(() => {
+    // Verificar autenticación
+    if (!isAuthenticated()) {
+      navigate({ to: "/" });
+      return;
+    }
+
     async function initData() {
       const [pData, aData, hData] = await Promise.all([loadPatients(), loadAppointments(), loadHistorias()]);
       setPatients(pData);
       setAppointments(aData);
       setHistorias(hData);
-      try {
-        setUser(window.localStorage.getItem("devi.user") || "Operador");
-      } catch {
-        setUser("Operador");
-      }
+
+      const sessionUser = getUser();
+      setUser(sessionUser?.username || "Operador");
     }
     initData();
-  }, []);
+  }, [navigate]);
 
   /* ─── Enriched appointments (resolve patient name by cedula) ─── */
 
@@ -368,9 +373,7 @@ function Dashboard() {
   /* ─── Logout ─── */
 
   function handleLogout() {
-    try {
-      window.localStorage.removeItem("devi.user");
-    } catch {}
+    authLogout();
     navigate({ to: "/" });
   }
 
