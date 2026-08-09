@@ -47,7 +47,7 @@ export async function addPatient(patient: Omit<Patient, "id">) {
       whatsapp: patient.whatsapp,
       direccion: patient.direccion,
       correo: patient.correo,
-      fechaIngreso: patient.fechaIngreso,
+      fecha_ingreso: patient.fechaIngreso,
       encargado: patient.encargado,
     },
   ]);
@@ -64,7 +64,7 @@ export async function updatePatient(patient: Patient) {
       whatsapp: patient.whatsapp,
       direccion: patient.direccion,
       correo: patient.correo,
-      fechaIngreso: patient.fechaIngreso,
+      fecha_ingreso: patient.fechaIngreso,
       encargado: patient.encargado,
     })
     .eq("id", patient.id);
