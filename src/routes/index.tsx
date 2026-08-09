@@ -95,7 +95,6 @@ function Index() {
                 <Input
                   id="user"
                   type="text"
-                  autoComplete="username"
                   value={user}
                   onChange={(e) => { setUser(e.target.value); setError(""); }}
                   placeholder="usuario o correo"
@@ -113,7 +112,6 @@ function Index() {
                 <Input
                   id="password"
                   type="password"
-                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); setError(""); }}
                   placeholder="••••••••"
@@ -128,10 +126,9 @@ function Index() {
               <button
                 type="submit"
                 disabled={loading}
-                className="devi-float group relative flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-xl border border-[#c9a84c]/60 bg-gradient-to-r from-[#c9a84c] via-[#e6c66a] to-[#c9a84c] font-semibold uppercase tracking-[0.25em] text-neutral-900 transition-transform duration-300 hover:scale-[1.04] active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none"
+                className="group relative flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-xl border border-[#c9a84c]/60 bg-[#c9a84c] font-semibold uppercase tracking-[0.25em] text-neutral-900 transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none"
                 style={{ fontFamily: "'Rajdhani', sans-serif" }}
               >
-                <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
                 {loading ? (
                   <>
                     <Loader2 className="relative h-4 w-4 animate-spin" />
