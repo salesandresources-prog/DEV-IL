@@ -1,6 +1,5 @@
 // src/lib/devi-auth.ts
-
-import { getApiBase } from "./api";
+import { supabase } from "./supabase";
 
 export interface DeviUser {
   id: number;
@@ -11,29 +10,31 @@ export interface DeviUser {
 
 const STORAGE_KEY = "devi.session";
 
-/**
- * Intenta autenticar al usuario contra la API PHP.
- * Retorna el usuario si es exitoso, o lanza un Error con mensaje descriptivo.
- */
 export async function login(user: string, password: string): Promise<DeviUser> {
-  const response = await fetch(`${getApiBase()}/login.php`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ user, password }),
-  });
+  // En Supabase, buscaremos el usuario en la tabla 'users'
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('username', user)
+    .single();
 
-  if (!response.ok) {
-    throw new Error("Error de conexión con el servidor");
+  if (error || !data) {
+    throw new Error("Credenciales inválidas o usuario no encontrado");
   }
 
-  const data = await response.json();
-
-  if (!data.success) {
-    throw new Error(data.error || "Credenciales inválidas");
+  // IMPORTANTE: En producción usar auth real de Supabase (auth.signInWithPassword)
+  // Aquí hacemos una comparación básica para replicar tu tabla MySQL existente.
+  if (data.password !== password) {
+    throw new Error("Credenciales inválidas");
   }
 
-  // Guardar sesión en localStorage
-  const deviUser: DeviUser = data.user;
+  const deviUser: DeviUser = {
+    id: data.id,
+    username: data.username,
+    email: data.email,
+    role: data.role || 'user'
+  };
+
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(deviUser));
   } catch {}
@@ -41,15 +42,13 @@ export async function login(user: string, password: string): Promise<DeviUser> {
   return deviUser;
 }
 
-/** Cierra la sesión actual eliminando datos del localStorage */
 export function logout(): void {
   try {
     window.localStorage.removeItem(STORAGE_KEY);
-    window.localStorage.removeItem("devi.user"); // limpiar el viejo key también
+    window.localStorage.removeItem("devi.user");
   } catch {}
 }
 
-/** Obtiene el usuario de la sesión actual, o null si no hay sesión */
 export function getUser(): DeviUser | null {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -60,7 +59,6 @@ export function getUser(): DeviUser | null {
   }
 }
 
-/** Verifica si hay una sesión activa */
 export function isAuthenticated(): boolean {
   return getUser() !== null;
 }

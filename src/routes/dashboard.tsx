@@ -35,10 +35,9 @@ import {
   MessageCircle,
   ClipboardList,
 } from "lucide-react";
-import { loadPatients, type Patient } from "@/lib/devi-patients";
-import { loadAppointments, type Appointment, type EnrichedAppointment } from "@/lib/devi-appointments";
-import { loadHistorias, type HistoriaClinica } from "@/lib/devi-historias";
-import { getApiBase } from "@/lib/api";
+import { loadPatients, addPatient, updatePatient, deletePatient, type Patient } from "@/lib/devi-patients";
+import { loadAppointments, addAppointment, updateAppointment, deleteAppointment, type Appointment, type EnrichedAppointment } from "@/lib/devi-appointments";
+import { loadHistorias, addHistoria, deleteHistoria, type HistoriaClinica } from "@/lib/devi-historias";
 import { getUser, logout as authLogout, isAuthenticated } from "@/lib/devi-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSwipe } from "@/hooks/use-swipe";
@@ -208,16 +207,7 @@ function Dashboard() {
     return { total: patients.length, thisMonth, encargados };
   }, [patients]);
 
-  /* ─── API helpers ─── */
-
-  async function apiPost(endpoint: string, body: unknown) {
-    const res = await fetch(`${getApiBase()}/${endpoint}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    return res;
-  }
+  // apiPost removed as we are using direct Supabase calls
 
   async function refreshPatients() {
     setPatients(await loadPatients());
@@ -235,31 +225,36 @@ function Dashboard() {
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
-    await apiPost("add_patient.php", form);
-    setForm(emptyPatient);
-    setOpenNew(false);
-    await refreshPatients();
+    try {
+      await addPatient(form);
+      setForm(emptyPatient);
+      setOpenNew(false);
+      await refreshPatients();
+    } catch (error: any) {
+      alert("Error al crear paciente: " + error.message);
+    }
   }
 
   async function handleUpdate(e: React.FormEvent) {
     e.preventDefault();
     if (!editing) return;
-    await apiPost("update_patient.php", editing);
-    setEditing(null);
-    await refreshPatients();
+    try {
+      await updatePatient(editing);
+      setEditing(null);
+      await refreshPatients();
+    } catch (error: any) {
+      alert("Error al actualizar paciente: " + error.message);
+    }
   }
 
   async function handleDelete(p: Patient) {
     try {
-      const res = await apiPost("delete_patient.php", { id: p.id });
-      if (res.ok) {
-        await refreshPatients();
-        setConfirmDelete(null);
-      } else {
-        alert("No se pudo eliminar el paciente. Revisa el PHP.");
-      }
-    } catch (error) {
-      console.error("Error de conexión:", error);
+      await deletePatient(p.id);
+      await refreshPatients();
+      setConfirmDelete(null);
+    } catch (error: any) {
+      console.error("Error al eliminar:", error);
+      alert("No se pudo eliminar el paciente.");
     }
   }
 
@@ -276,23 +271,15 @@ function Dashboard() {
 
   async function handleCreateAppt(e: React.FormEvent) {
     e.preventDefault();
-    // Solo enviar columnas reales de la tabla `citas`
-    const payload = {
-      cedula: apptForm.cedula,
-      fecha: apptForm.fecha,
-      hora: apptForm.hora,
-      motivo: apptForm.motivo,
-      encargado: apptForm.encargado,
-      estado: apptForm.estado,
-    };
-    
     try {
-      const res = await apiPost("add_appointment.php", payload);
-      const text = await res.text();
-      let data: any = {};
-      try { data = JSON.parse(text); } catch {}
-      
-      if (!res.ok || data.error) throw new Error(data.error || data.message || "Error al crear");
+      await addAppointment({
+        cedula: apptForm.cedula,
+        fecha: apptForm.fecha,
+        hora: apptForm.hora,
+        motivo: apptForm.motivo,
+        encargado: apptForm.encargado,
+        estado: apptForm.estado,
+      });
       setOpenNewAppt(false);
       setApptForm(emptyAppt);
       await refreshAppointments();
@@ -305,24 +292,8 @@ function Dashboard() {
     e.preventDefault();
     if (!editingAppt) return;
     
-    // Solo enviar columnas reales de la tabla `citas`
-    const payload = {
-      id: editingAppt.id,
-      cedula: editingAppt.cedula,
-      fecha: editingAppt.fecha,
-      hora: editingAppt.hora,
-      motivo: editingAppt.motivo,
-      encargado: editingAppt.encargado,
-      estado: editingAppt.estado,
-    };
-
     try {
-      const res = await apiPost("update_appointment.php", payload);
-      const text = await res.text();
-      let data: any = {};
-      try { data = JSON.parse(text); } catch {}
-      
-      if (!res.ok || data.error) throw new Error(data.error || data.message || "Error al actualizar");
+      await updateAppointment(editingAppt);
       setEditingAppt(null);
       await refreshAppointments();
     } catch (error: any) {
@@ -332,9 +303,13 @@ function Dashboard() {
   }
 
   async function handleDeleteAppt(a: Appointment) {
-    await apiPost("delete_appointment.php", { id: a.id });
-    setConfirmDeleteAppt(null);
-    await refreshAppointments();
+    try {
+      await deleteAppointment(a.id);
+      setConfirmDeleteAppt(null);
+      await refreshAppointments();
+    } catch (error: any) {
+      alert("Error al eliminar cita: " + error.message);
+    }
   }
 
   /* ─── Historias CRUD ─── */
@@ -350,12 +325,7 @@ function Dashboard() {
   async function handleCreateHistoria(e: React.FormEvent) {
     e.preventDefault();
     try {
-      const res = await apiPost("add_historia.php", histForm);
-      const text = await res.text();
-      let data: any = {};
-      try { data = JSON.parse(text); } catch {}
-      
-      if (!res.ok || data.error) throw new Error(data.error || data.message || "Error al guardar historia");
+      await addHistoria(histForm);
       setOpenNewHist(false);
       setHistForm(emptyHistoria);
       await refreshHistorias();
@@ -365,9 +335,13 @@ function Dashboard() {
   }
 
   async function handleDeleteHistoria(h: HistoriaClinica) {
-    await apiPost("delete_historia.php", { id: h.id });
-    setConfirmDeleteHist(null);
-    await refreshHistorias();
+    try {
+      await deleteHistoria(h.id);
+      setConfirmDeleteHist(null);
+      await refreshHistorias();
+    } catch (error: any) {
+      alert("Error al eliminar historia: " + error.message);
+    }
   }
 
   /* ─── Logout ─── */
