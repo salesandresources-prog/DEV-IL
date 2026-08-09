@@ -1,15 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn(
-    "Supabase credentials missing. Make sure to set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file or Vercel dashboard.",
-  );
-}
+// Hardcoding the Supabase credentials to guarantee connection without Vercel Env Variable issues
+const supabaseUrl = "https://ptpkagihdzcrrxwnfsuo.supabase.co";
+const supabaseAnonKey = "sb_publishable_S5kLnbDquy-m3yqWeFLV9Q_hvNMXM8E";
 
 export const supabase = createClient(
-  supabaseUrl || "https://placeholder.supabase.co",
-  supabaseAnonKey || "placeholder",
+  supabaseUrl,
+  supabaseAnonKey
 );
