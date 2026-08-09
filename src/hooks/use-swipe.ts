@@ -7,10 +7,7 @@ import { useRef, useCallback, type TouchEvent } from "react";
 
 const SWIPE_THRESHOLD = 50;
 
-export function useSwipe(
-  onSwipeLeft: () => void,
-  onSwipeRight: () => void
-) {
+export function useSwipe(onSwipeLeft: () => void, onSwipeRight: () => void) {
   const startX = useRef(0);
   const startY = useRef(0);
 
@@ -34,7 +31,7 @@ export function useSwipe(
         onSwipeLeft();
       }
     },
-    [onSwipeLeft, onSwipeRight]
+    [onSwipeLeft, onSwipeRight],
   );
 
   return { onTouchStart, onTouchEnd };

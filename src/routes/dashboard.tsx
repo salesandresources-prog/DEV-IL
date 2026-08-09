@@ -35,10 +35,32 @@ import {
   MessageCircle,
   ClipboardList,
 } from "lucide-react";
-import { loadPatients, addPatient, updatePatient, deletePatient, type Patient } from "@/lib/devi-patients";
-import { loadAppointments, addAppointment, updateAppointment, deleteAppointment, type Appointment, type EnrichedAppointment } from "@/lib/devi-appointments";
-import { loadHistorias, addHistoria, deleteHistoria, type HistoriaClinica } from "@/lib/devi-historias";
-import { getUser, logout as authLogout, isAuthenticated } from "@/lib/devi-auth";
+import {
+  loadPatients,
+  addPatient,
+  updatePatient,
+  deletePatient,
+  type Patient,
+} from "@/lib/devi-patients";
+import {
+  loadAppointments,
+  addAppointment,
+  updateAppointment,
+  deleteAppointment,
+  type Appointment,
+  type EnrichedAppointment,
+} from "@/lib/devi-appointments";
+import {
+  loadHistorias,
+  addHistoria,
+  deleteHistoria,
+  type HistoriaClinica,
+} from "@/lib/devi-historias";
+import {
+  getUser,
+  logout as authLogout,
+  isAuthenticated,
+} from "@/lib/devi-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSwipe } from "@/hooks/use-swipe";
 
@@ -46,7 +68,10 @@ export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
       { title: "DEVI · Panel de pacientes" },
-      { name: "description", content: "Gestión de pacientes en el panel DEVI." },
+      {
+        name: "description",
+        content: "Gestión de pacientes en el panel DEVI.",
+      },
       { property: "og:title", content: "DEVI · Panel" },
       { property: "og:description", content: "Gestión de pacientes DEVI." },
     ],
@@ -80,9 +105,16 @@ const emptyHistoria: Omit<HistoriaClinica, "id"> = {
   paciente_id: "",
   fecha_consulta: new Date().toISOString().slice(0, 10),
   motivo_consulta: "",
-  od_esfera: "", od_cilindro: "", od_eje: "",
-  oi_esfera: "", oi_cilindro: "", oi_eje: "",
-  dip: "", diagnostico: "", recomendaciones: "", proxima_cita: "",
+  od_esfera: "",
+  od_cilindro: "",
+  od_eje: "",
+  oi_esfera: "",
+  oi_cilindro: "",
+  oi_eje: "",
+  dip: "",
+  diagnostico: "",
+  recomendaciones: "",
+  proxima_cita: "",
 };
 
 type Section = "patients" | "appointments" | "historias";
@@ -113,20 +145,35 @@ function Dashboard() {
   const [apptForm, setApptForm] = useState<Omit<Appointment, "id">>(emptyAppt);
   const [openNewAppt, setOpenNewAppt] = useState(false);
   const [editingAppt, setEditingAppt] = useState<Appointment | null>(null);
-  const [confirmDeleteAppt, setConfirmDeleteAppt] = useState<EnrichedAppointment | null>(null);
+  const [confirmDeleteAppt, setConfirmDeleteAppt] =
+    useState<EnrichedAppointment | null>(null);
 
   // Historias dialogs
-  const [histForm, setHistForm] = useState<Omit<HistoriaClinica, "id">>(emptyHistoria);
+  const [histForm, setHistForm] =
+    useState<Omit<HistoriaClinica, "id">>(emptyHistoria);
   const [openNewHist, setOpenNewHist] = useState(false);
   const [viewingHist, setViewingHist] = useState<HistoriaClinica | null>(null);
-  const [confirmDeleteHist, setConfirmDeleteHist] = useState<HistoriaClinica | null>(null);
+  const [confirmDeleteHist, setConfirmDeleteHist] =
+    useState<HistoriaClinica | null>(null);
 
   // Swipe navigation
   const goNext = useCallback(() => {
-    setSection((s) => s === "patients" ? "appointments" : s === "appointments" ? "historias" : "historias");
+    setSection((s) =>
+      s === "patients"
+        ? "appointments"
+        : s === "appointments"
+          ? "historias"
+          : "historias",
+    );
   }, []);
   const goPrev = useCallback(() => {
-    setSection((s) => s === "historias" ? "appointments" : s === "appointments" ? "patients" : "patients");
+    setSection((s) =>
+      s === "historias"
+        ? "appointments"
+        : s === "appointments"
+          ? "patients"
+          : "patients",
+    );
   }, []);
   const swipeHandlers = useSwipe(goNext, goPrev);
 
@@ -140,7 +187,11 @@ function Dashboard() {
     }
 
     async function initData() {
-      const [pData, aData, hData] = await Promise.all([loadPatients(), loadAppointments(), loadHistorias()]);
+      const [pData, aData, hData] = await Promise.all([
+        loadPatients(),
+        loadAppointments(),
+        loadHistorias(),
+      ]);
       setPatients(pData);
       setAppointments(aData);
       setHistorias(hData);
@@ -155,7 +206,9 @@ function Dashboard() {
 
   const enrichedAppts: EnrichedAppointment[] = useMemo(() => {
     return appointments.map((a) => {
-      const patient = patients.find((p) => a.cedula && p.cedula === String(a.cedula));
+      const patient = patients.find(
+        (p) => a.cedula && p.cedula === String(a.cedula),
+      );
       return {
         ...a,
         patientName: patient?.nombre || "—",
@@ -173,7 +226,7 @@ function Dashboard() {
       (p) =>
         p.nombre?.toLowerCase().includes(q) ||
         p.cedula?.toString().toLowerCase().includes(q) ||
-        p.correo?.toLowerCase().includes(q)
+        p.correo?.toLowerCase().includes(q),
     );
   }, [patients, query]);
 
@@ -181,7 +234,13 @@ function Dashboard() {
     const q = query.trim().toLowerCase();
     if (!q) return enrichedAppts;
     return enrichedAppts.filter((a) => {
-      const fields = [a.patientName, a.id, a.motivo, a.encargado, a.cedula || ""];
+      const fields = [
+        a.patientName,
+        a.id,
+        a.motivo,
+        a.encargado,
+        a.cedula || "",
+      ];
       return fields.some((f) => f.toLowerCase().includes(q));
     });
   }, [enrichedAppts, query]);
@@ -201,7 +260,9 @@ function Dashboard() {
     const now = new Date();
     const thisMonth = patients.filter((p) => {
       const d = new Date(p.fechaIngreso);
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      return (
+        d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+      );
     }).length;
     const encargados = new Set(patients.map((p) => p.encargado)).size;
     return { total: patients.length, thisMonth, encargados };
@@ -291,7 +352,7 @@ function Dashboard() {
   async function handleUpdateAppt(e: React.FormEvent) {
     e.preventDefault();
     if (!editingAppt) return;
-    
+
     try {
       await updateAppointment(editingAppt);
       setEditingAppt(null);
@@ -365,7 +426,10 @@ function Dashboard() {
             <div>
               <div
                 className="text-lg font-black tracking-[0.3em]"
-                style={{ fontFamily: "'Orbitron', sans-serif", color: "#f0d78c" }}
+                style={{
+                  fontFamily: "'Orbitron', sans-serif",
+                  color: "#f0d78c",
+                }}
               >
                 DEVI
               </div>
@@ -379,9 +443,24 @@ function Dashboard() {
             <div className="mb-2 px-3 text-[10px] uppercase tracking-[0.3em] text-neutral-500">
               Gestión
             </div>
-            <SidebarBtn active={section === "patients"} onClick={() => setSection("patients")} icon={<Users className="h-4 w-4" />} label="PACIENTES" />
-            <SidebarBtn active={section === "appointments"} onClick={() => setSection("appointments")} icon={<CalendarClock className="h-4 w-4" />} label="CITAS" />
-            <SidebarBtn active={section === "historias"} onClick={() => setSection("historias")} icon={<ClipboardList className="h-4 w-4" />} label="HISTORIAS CLÍNICAS" />
+            <SidebarBtn
+              active={section === "patients"}
+              onClick={() => setSection("patients")}
+              icon={<Users className="h-4 w-4" />}
+              label="PACIENTES"
+            />
+            <SidebarBtn
+              active={section === "appointments"}
+              onClick={() => setSection("appointments")}
+              icon={<CalendarClock className="h-4 w-4" />}
+              label="CITAS"
+            />
+            <SidebarBtn
+              active={section === "historias"}
+              onClick={() => setSection("historias")}
+              icon={<ClipboardList className="h-4 w-4" />}
+              label="HISTORIAS CLÍNICAS"
+            />
           </nav>
         </aside>
 
@@ -395,9 +474,16 @@ function Dashboard() {
             <div>
               <h1
                 className="text-lg font-bold tracking-widest sm:text-2xl"
-                style={{ fontFamily: "'Orbitron', sans-serif", color: "#f0d78c" }}
+                style={{
+                  fontFamily: "'Orbitron', sans-serif",
+                  color: "#f0d78c",
+                }}
               >
-                {section === "patients" ? "PANEL DE PACIENTES" : section === "appointments" ? "PANEL DE CITAS" : "HISTORIAS CLÍNICAS"}
+                {section === "patients"
+                  ? "PANEL DE PACIENTES"
+                  : section === "appointments"
+                    ? "PANEL DE CITAS"
+                    : "HISTORIAS CLÍNICAS"}
               </h1>
               <p className="text-xs text-neutral-500">
                 {section === "patients"
@@ -410,7 +496,9 @@ function Dashboard() {
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="hidden text-right sm:block">
                 <div className="text-xs text-neutral-500">Operador</div>
-                <div className="text-sm font-medium text-neutral-200">{user}</div>
+                <div className="text-sm font-medium text-neutral-200">
+                  {user}
+                </div>
               </div>
               <div
                 className="flex h-9 w-9 items-center justify-center rounded-full border border-[#c9a84c]/40 bg-neutral-950 text-sm font-bold"
@@ -433,19 +521,54 @@ function Dashboard() {
             {/* Stats */}
             {section === "patients" ? (
               <div className="grid gap-4 grid-cols-2 md:grid-cols-3">
-                <StatCard label="Total pacientes" value={totals.total} icon={<Users className="h-5 w-5" />} />
-                <StatCard label="Nuevos este mes" value={totals.thisMonth} icon={<UserPlus className="h-5 w-5" />} />
-                <StatCard label="Encargados activos" value={totals.encargados} icon={<ShieldCheck className="h-5 w-5" />} className="col-span-2 md:col-span-1" />
+                <StatCard
+                  label="Total pacientes"
+                  value={totals.total}
+                  icon={<Users className="h-5 w-5" />}
+                />
+                <StatCard
+                  label="Nuevos este mes"
+                  value={totals.thisMonth}
+                  icon={<UserPlus className="h-5 w-5" />}
+                />
+                <StatCard
+                  label="Encargados activos"
+                  value={totals.encargados}
+                  icon={<ShieldCheck className="h-5 w-5" />}
+                  className="col-span-2 md:col-span-1"
+                />
               </div>
             ) : section === "appointments" ? (
               <div className="grid gap-4 grid-cols-2 md:grid-cols-3">
-                <StatCard label="Total citas" value={enrichedAppts.length} icon={<CalendarClock className="h-5 w-5" />} />
-                <StatCard label="Pendientes" value={enrichedAppts.filter((a) => a.estado === "Pendiente").length} icon={<CalendarPlus className="h-5 w-5" />} />
-                <StatCard label="Confirmadas" value={enrichedAppts.filter((a) => a.estado === "Confirmada").length} icon={<ShieldCheck className="h-5 w-5" />} className="col-span-2 md:col-span-1" />
+                <StatCard
+                  label="Total citas"
+                  value={enrichedAppts.length}
+                  icon={<CalendarClock className="h-5 w-5" />}
+                />
+                <StatCard
+                  label="Pendientes"
+                  value={
+                    enrichedAppts.filter((a) => a.estado === "Pendiente").length
+                  }
+                  icon={<CalendarPlus className="h-5 w-5" />}
+                />
+                <StatCard
+                  label="Confirmadas"
+                  value={
+                    enrichedAppts.filter((a) => a.estado === "Confirmada")
+                      .length
+                  }
+                  icon={<ShieldCheck className="h-5 w-5" />}
+                  className="col-span-2 md:col-span-1"
+                />
               </div>
             ) : (
               <div className="grid gap-4 grid-cols-2 md:grid-cols-3">
-                <StatCard label="Total historias" value={historias.length} icon={<ClipboardList className="h-5 w-5" />} />
+                <StatCard
+                  label="Total historias"
+                  value={historias.length}
+                  icon={<ClipboardList className="h-5 w-5" />}
+                />
               </div>
             )}
 
@@ -473,7 +596,10 @@ function Dashboard() {
                       onClick={() => openCreateAppointmentFor()}
                       variant="outline"
                       className="border-[#c9a84c]/40 bg-transparent text-[#f0d78c] hover:bg-[#c9a84c]/10"
-                      style={{ fontFamily: "'Rajdhani', sans-serif", letterSpacing: "0.08em" }}
+                      style={{
+                        fontFamily: "'Rajdhani', sans-serif",
+                        letterSpacing: "0.08em",
+                      }}
                     >
                       <CalendarPlus className="mr-2 h-4 w-4" />
                       NUEVA CITA
@@ -516,7 +642,15 @@ function Dashboard() {
                   <Table>
                     <TableHeader>
                       <TableRow className="border-[#c9a84c]/20 hover:bg-transparent">
-                        {["ID", "Nombre", "Cédula", "Teléfono", "Ingreso", "Encargado", "Acciones"].map((h) => (
+                        {[
+                          "ID",
+                          "Nombre",
+                          "Cédula",
+                          "Teléfono",
+                          "Ingreso",
+                          "Encargado",
+                          "Acciones",
+                        ].map((h) => (
                           <TableHead
                             key={h}
                             className="text-[10px] uppercase tracking-[0.2em] text-[#c9a84c]/80 whitespace-nowrap"
@@ -534,24 +668,49 @@ function Dashboard() {
                           className="devi-fade-up border-[#c9a84c]/10 text-sm text-neutral-200 transition-colors hover:bg-[#c9a84c]/5"
                           style={{ animationDelay: `${i * 30}ms` }}
                         >
-                          <TableCell className="font-mono text-xs text-[#f0d78c]">{p.id}</TableCell>
-                          <TableCell className="font-medium whitespace-nowrap">{p.nombre}</TableCell>
-                          <TableCell className="font-medium">{p.cedula}</TableCell>
-                          <TableCell className="text-neutral-400">{p.telefono}</TableCell>
-                          <TableCell className="text-neutral-400">{p.fechaIngreso}</TableCell>
-                          <TableCell className="text-neutral-300">{p.encargado}</TableCell>
+                          <TableCell className="font-mono text-xs text-[#f0d78c]">
+                            {p.id}
+                          </TableCell>
+                          <TableCell className="font-medium whitespace-nowrap">
+                            {p.nombre}
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {p.cedula}
+                          </TableCell>
+                          <TableCell className="text-neutral-400">
+                            {p.telefono}
+                          </TableCell>
+                          <TableCell className="text-neutral-400">
+                            {p.fechaIngreso}
+                          </TableCell>
+                          <TableCell className="text-neutral-300">
+                            {p.encargado}
+                          </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
-                              <IconBtn label="Crear cita" onClick={() => openCreateAppointmentFor(p)}>
+                              <IconBtn
+                                label="Crear cita"
+                                onClick={() => openCreateAppointmentFor(p)}
+                              >
                                 <CalendarPlus className="h-3.5 w-3.5" />
                               </IconBtn>
-                              <IconBtn label="Ver" onClick={() => setViewing(p)}>
+                              <IconBtn
+                                label="Ver"
+                                onClick={() => setViewing(p)}
+                              >
                                 <Eye className="h-3.5 w-3.5" />
                               </IconBtn>
-                              <IconBtn label="Editar" onClick={() => setEditing({ ...p })}>
+                              <IconBtn
+                                label="Editar"
+                                onClick={() => setEditing({ ...p })}
+                              >
                                 <Pencil className="h-3.5 w-3.5" />
                               </IconBtn>
-                              <IconBtn label="Eliminar" onClick={() => setConfirmDelete(p)} danger>
+                              <IconBtn
+                                label="Eliminar"
+                                onClick={() => setConfirmDelete(p)}
+                                danger
+                              >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </IconBtn>
                               <WhatsAppLink
@@ -564,7 +723,10 @@ function Dashboard() {
                       ))}
                       {filtered.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={7} className="py-10 text-center text-sm text-neutral-500">
+                          <TableCell
+                            colSpan={7}
+                            className="py-10 text-center text-sm text-neutral-500"
+                          >
                             Sin resultados para "{query}"
                           </TableCell>
                         </TableRow>
@@ -580,7 +742,17 @@ function Dashboard() {
                   <Table>
                     <TableHeader>
                       <TableRow className="border-[#c9a84c]/20 hover:bg-transparent">
-                        {["ID", "Cédula", "Paciente", "Fecha", "Hora", "Motivo", "Encargado", "Estado", ""].map((h) => (
+                        {[
+                          "ID",
+                          "Cédula",
+                          "Paciente",
+                          "Fecha",
+                          "Hora",
+                          "Motivo",
+                          "Encargado",
+                          "Estado",
+                          "",
+                        ].map((h) => (
                           <TableHead
                             key={h || "actions"}
                             className="text-[10px] uppercase tracking-[0.2em] text-[#c9a84c]/80 whitespace-nowrap"
@@ -598,13 +770,27 @@ function Dashboard() {
                           className="devi-fade-up border-[#c9a84c]/10 text-sm text-neutral-200 transition-colors hover:bg-[#c9a84c]/5"
                           style={{ animationDelay: `${i * 30}ms` }}
                         >
-                          <TableCell className="font-mono text-xs text-[#f0d78c]">{a.id}</TableCell>
-                          <TableCell className="font-medium text-neutral-400 text-sm">{a.cedula}</TableCell>
-                          <TableCell className="font-medium whitespace-nowrap">{a.patientName}</TableCell>
-                          <TableCell className="text-neutral-400">{a.fecha}</TableCell>
-                          <TableCell className="text-neutral-400">{a.hora}</TableCell>
-                          <TableCell className="max-w-[220px] truncate text-neutral-400">{a.motivo}</TableCell>
-                          <TableCell className="text-neutral-300">{a.encargado}</TableCell>
+                          <TableCell className="font-mono text-xs text-[#f0d78c]">
+                            {a.id}
+                          </TableCell>
+                          <TableCell className="font-medium text-neutral-400 text-sm">
+                            {a.cedula}
+                          </TableCell>
+                          <TableCell className="font-medium whitespace-nowrap">
+                            {a.patientName}
+                          </TableCell>
+                          <TableCell className="text-neutral-400">
+                            {a.fecha}
+                          </TableCell>
+                          <TableCell className="text-neutral-400">
+                            {a.hora}
+                          </TableCell>
+                          <TableCell className="max-w-[220px] truncate text-neutral-400">
+                            {a.motivo}
+                          </TableCell>
+                          <TableCell className="text-neutral-300">
+                            {a.encargado}
+                          </TableCell>
                           <TableCell>
                             <span
                               className={
@@ -623,10 +809,27 @@ function Dashboard() {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
-                              <IconBtn label="Editar" onClick={() => setEditingAppt({ id: a.id, cedula: a.cedula, fecha: a.fecha, hora: a.hora, motivo: a.motivo, encargado: a.encargado, estado: a.estado })}>
+                              <IconBtn
+                                label="Editar"
+                                onClick={() =>
+                                  setEditingAppt({
+                                    id: a.id,
+                                    cedula: a.cedula,
+                                    fecha: a.fecha,
+                                    hora: a.hora,
+                                    motivo: a.motivo,
+                                    encargado: a.encargado,
+                                    estado: a.estado,
+                                  })
+                                }
+                              >
                                 <Pencil className="h-3.5 w-3.5" />
                               </IconBtn>
-                              <IconBtn label="Eliminar" onClick={() => setConfirmDeleteAppt(a)} danger>
+                              <IconBtn
+                                label="Eliminar"
+                                onClick={() => setConfirmDeleteAppt(a)}
+                                danger
+                              >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </IconBtn>
                               <WhatsAppLink
@@ -639,7 +842,10 @@ function Dashboard() {
                       ))}
                       {filteredAppts.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={9} className="py-10 text-center text-sm text-neutral-500">
+                          <TableCell
+                            colSpan={9}
+                            className="py-10 text-center text-sm text-neutral-500"
+                          >
                             Sin citas registradas
                           </TableCell>
                         </TableRow>
@@ -655,7 +861,15 @@ function Dashboard() {
                   <Table>
                     <TableHeader>
                       <TableRow className="border-[#c9a84c]/20 hover:bg-transparent">
-                        {["ID", "Paciente", "Fecha", "Motivo", "Diagnóstico", "DIP", "Acciones"].map((h) => (
+                        {[
+                          "ID",
+                          "Paciente",
+                          "Fecha",
+                          "Motivo",
+                          "Diagnóstico",
+                          "DIP",
+                          "Acciones",
+                        ].map((h) => (
                           <TableHead
                             key={h || "actions"}
                             className="text-[10px] uppercase tracking-[0.2em] text-[#c9a84c]/80 whitespace-nowrap"
@@ -668,34 +882,62 @@ function Dashboard() {
                     </TableHeader>
                     <TableBody>
                       {filteredHistorias.map((h, i) => {
-                        const pName = patients.find(p => p.cedula === h.paciente_id || p.id === h.paciente_id)?.nombre || h.paciente_id;
+                        const pName =
+                          patients.find(
+                            (p) =>
+                              p.cedula === h.paciente_id ||
+                              p.id === h.paciente_id,
+                          )?.nombre || h.paciente_id;
                         return (
-                        <TableRow
-                          key={h.id}
-                          className="devi-fade-up border-[#c9a84c]/10 text-sm text-neutral-200 transition-colors hover:bg-[#c9a84c]/5"
-                          style={{ animationDelay: `${i * 30}ms` }}
-                        >
-                          <TableCell className="font-mono text-xs text-[#f0d78c]">{h.id}</TableCell>
-                          <TableCell className="font-medium whitespace-nowrap">{pName}</TableCell>
-                          <TableCell className="text-neutral-400">{h.fecha_consulta}</TableCell>
-                          <TableCell className="max-w-[150px] truncate text-neutral-400">{h.motivo_consulta}</TableCell>
-                          <TableCell className="max-w-[200px] truncate text-neutral-400">{h.diagnostico}</TableCell>
-                          <TableCell className="text-neutral-400">{h.dip}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1">
-                              <IconBtn label="Ver" onClick={() => setViewingHist(h)}>
-                                <Eye className="h-3.5 w-3.5" />
-                              </IconBtn>
-                              <IconBtn label="Eliminar" onClick={() => setConfirmDeleteHist(h)} danger>
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </IconBtn>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )})}
+                          <TableRow
+                            key={h.id}
+                            className="devi-fade-up border-[#c9a84c]/10 text-sm text-neutral-200 transition-colors hover:bg-[#c9a84c]/5"
+                            style={{ animationDelay: `${i * 30}ms` }}
+                          >
+                            <TableCell className="font-mono text-xs text-[#f0d78c]">
+                              {h.id}
+                            </TableCell>
+                            <TableCell className="font-medium whitespace-nowrap">
+                              {pName}
+                            </TableCell>
+                            <TableCell className="text-neutral-400">
+                              {h.fecha_consulta}
+                            </TableCell>
+                            <TableCell className="max-w-[150px] truncate text-neutral-400">
+                              {h.motivo_consulta}
+                            </TableCell>
+                            <TableCell className="max-w-[200px] truncate text-neutral-400">
+                              {h.diagnostico}
+                            </TableCell>
+                            <TableCell className="text-neutral-400">
+                              {h.dip}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-1">
+                                <IconBtn
+                                  label="Ver"
+                                  onClick={() => setViewingHist(h)}
+                                >
+                                  <Eye className="h-3.5 w-3.5" />
+                                </IconBtn>
+                                <IconBtn
+                                  label="Eliminar"
+                                  onClick={() => setConfirmDeleteHist(h)}
+                                  danger
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </IconBtn>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                       {filteredHistorias.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={7} className="py-10 text-center text-sm text-neutral-500">
+                          <TableCell
+                            colSpan={7}
+                            className="py-10 text-center text-sm text-neutral-500"
+                          >
                             Sin historias registradas
                           </TableCell>
                         </TableRow>
@@ -734,84 +976,185 @@ function Dashboard() {
       )}
 
       {/* ═══ DIALOGS ═══════════════════════════════════════════ */}
-      
+
       {/* Historias Dialogs */}
 
       <Dialog open={openNewHist} onOpenChange={setOpenNewHist}>
         <DialogContent className="max-w-3xl border-[#c9a84c]/30 bg-neutral-950 text-neutral-100 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle style={{ color: "#f0d78c", fontFamily: "'Rajdhani', sans-serif", letterSpacing: "0.1em" }}>
+            <DialogTitle
+              style={{
+                color: "#f0d78c",
+                fontFamily: "'Rajdhani', sans-serif",
+                letterSpacing: "0.1em",
+              }}
+            >
               NUEVA HISTORIA CLÍNICA
             </DialogTitle>
             <DialogDescription className="text-neutral-400">
               Registrar nueva optometría.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleCreateHistoria} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <form
+            onSubmit={handleCreateHistoria}
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2"
+          >
             <div className="space-y-1.5 sm:col-span-2 relative">
-              <Label className="text-[10px] uppercase tracking-widest text-[#c9a84c]/80">Paciente (Cédula o Nombre)</Label>
+              <Label className="text-[10px] uppercase tracking-widest text-[#c9a84c]/80">
+                Paciente (Cédula o Nombre)
+              </Label>
               <Input
                 placeholder="Buscar paciente..."
                 value={histForm.paciente_id}
-                onChange={(e) => setHistForm({ ...histForm, paciente_id: e.target.value })}
+                onChange={(e) =>
+                  setHistForm({ ...histForm, paciente_id: e.target.value })
+                }
                 className="h-9 w-full rounded-md border border-[#c9a84c]/25 bg-black/50 px-3 text-sm text-neutral-100"
               />
-              {histForm.paciente_id && !patients.find((p) => p.cedula === histForm.paciente_id || p.id === histForm.paciente_id) && (
-                <ul className="absolute z-50 mt-1 max-h-40 w-full overflow-auto rounded-md border border-[#c9a84c]/20 bg-neutral-900 shadow-xl">
-                  {patients
-                    .filter((p) => p.cedula.includes(histForm.paciente_id) || p.nombre.toLowerCase().includes(histForm.paciente_id.toLowerCase()))
-                    .map((p) => (
-                      <li
-                        key={p.id}
-                        className="cursor-pointer px-3 py-2 text-sm text-neutral-100 hover:bg-[#c9a84c]/20"
-                        onClick={() => setHistForm({ ...histForm, paciente_id: p.cedula })}
-                      >
-                        <span className="font-mono text-[#f0d78c]">{p.cedula}</span> — {p.nombre}
-                      </li>
-                    ))}
-                </ul>
-              )}
+              {histForm.paciente_id &&
+                !patients.find(
+                  (p) =>
+                    p.cedula === histForm.paciente_id ||
+                    p.id === histForm.paciente_id,
+                ) && (
+                  <ul className="absolute z-50 mt-1 max-h-40 w-full overflow-auto rounded-md border border-[#c9a84c]/20 bg-neutral-900 shadow-xl">
+                    {patients
+                      .filter(
+                        (p) =>
+                          p.cedula.includes(histForm.paciente_id) ||
+                          p.nombre
+                            .toLowerCase()
+                            .includes(histForm.paciente_id.toLowerCase()),
+                      )
+                      .map((p) => (
+                        <li
+                          key={p.id}
+                          className="cursor-pointer px-3 py-2 text-sm text-neutral-100 hover:bg-[#c9a84c]/20"
+                          onClick={() =>
+                            setHistForm({ ...histForm, paciente_id: p.cedula })
+                          }
+                        >
+                          <span className="font-mono text-[#f0d78c]">
+                            {p.cedula}
+                          </span>{" "}
+                          — {p.nombre}
+                        </li>
+                      ))}
+                  </ul>
+                )}
             </div>
 
-            <Field label="Fecha Consulta" type="date" value={histForm.fecha_consulta} onChange={(v) => setHistForm({ ...histForm, fecha_consulta: v })} required />
-            <Field label="Motivo de Consulta" value={histForm.motivo_consulta} onChange={(v) => setHistForm({ ...histForm, motivo_consulta: v })} required />
+            <Field
+              label="Fecha Consulta"
+              type="date"
+              value={histForm.fecha_consulta}
+              onChange={(v) => setHistForm({ ...histForm, fecha_consulta: v })}
+              required
+            />
+            <Field
+              label="Motivo de Consulta"
+              value={histForm.motivo_consulta}
+              onChange={(v) => setHistForm({ ...histForm, motivo_consulta: v })}
+              required
+            />
 
             <div className="sm:col-span-2 p-3 border border-[#c9a84c]/20 rounded-md bg-black/40">
-              <h4 className="text-xs uppercase tracking-widest text-[#f0d78c] mb-3">Refracción - Ojo Derecho (OD)</h4>
+              <h4 className="text-xs uppercase tracking-widest text-[#f0d78c] mb-3">
+                Refracción - Ojo Derecho (OD)
+              </h4>
               <div className="grid grid-cols-3 gap-3">
-                <Field label="Esfera" value={histForm.od_esfera} onChange={(v) => setHistForm({ ...histForm, od_esfera: v })} />
-                <Field label="Cilindro" value={histForm.od_cilindro} onChange={(v) => setHistForm({ ...histForm, od_cilindro: v })} />
-                <Field label="Eje" value={histForm.od_eje} onChange={(v) => setHistForm({ ...histForm, od_eje: v })} />
+                <Field
+                  label="Esfera"
+                  value={histForm.od_esfera}
+                  onChange={(v) => setHistForm({ ...histForm, od_esfera: v })}
+                />
+                <Field
+                  label="Cilindro"
+                  value={histForm.od_cilindro}
+                  onChange={(v) => setHistForm({ ...histForm, od_cilindro: v })}
+                />
+                <Field
+                  label="Eje"
+                  value={histForm.od_eje}
+                  onChange={(v) => setHistForm({ ...histForm, od_eje: v })}
+                />
               </div>
             </div>
 
             <div className="sm:col-span-2 p-3 border border-[#c9a84c]/20 rounded-md bg-black/40">
-              <h4 className="text-xs uppercase tracking-widest text-[#f0d78c] mb-3">Refracción - Ojo Izquierdo (OI)</h4>
+              <h4 className="text-xs uppercase tracking-widest text-[#f0d78c] mb-3">
+                Refracción - Ojo Izquierdo (OI)
+              </h4>
               <div className="grid grid-cols-3 gap-3">
-                <Field label="Esfera" value={histForm.oi_esfera} onChange={(v) => setHistForm({ ...histForm, oi_esfera: v })} />
-                <Field label="Cilindro" value={histForm.oi_cilindro} onChange={(v) => setHistForm({ ...histForm, oi_cilindro: v })} />
-                <Field label="Eje" value={histForm.oi_eje} onChange={(v) => setHistForm({ ...histForm, oi_eje: v })} />
+                <Field
+                  label="Esfera"
+                  value={histForm.oi_esfera}
+                  onChange={(v) => setHistForm({ ...histForm, oi_esfera: v })}
+                />
+                <Field
+                  label="Cilindro"
+                  value={histForm.oi_cilindro}
+                  onChange={(v) => setHistForm({ ...histForm, oi_cilindro: v })}
+                />
+                <Field
+                  label="Eje"
+                  value={histForm.oi_eje}
+                  onChange={(v) => setHistForm({ ...histForm, oi_eje: v })}
+                />
               </div>
             </div>
 
-            <Field label="DIP" value={histForm.dip} onChange={(v) => setHistForm({ ...histForm, dip: v })} />
-            <Field label="Próxima Cita" type="date" value={histForm.proxima_cita} onChange={(v) => setHistForm({ ...histForm, proxima_cita: v })} />
-            
+            <Field
+              label="DIP"
+              value={histForm.dip}
+              onChange={(v) => setHistForm({ ...histForm, dip: v })}
+            />
+            <Field
+              label="Próxima Cita"
+              type="date"
+              value={histForm.proxima_cita}
+              onChange={(v) => setHistForm({ ...histForm, proxima_cita: v })}
+            />
+
             <div className="sm:col-span-2 space-y-1.5">
-              <Label className="text-[10px] uppercase tracking-widest text-[#c9a84c]/80">Diagnóstico</Label>
-              <textarea value={histForm.diagnostico} onChange={(e) => setHistForm({ ...histForm, diagnostico: e.target.value })} className="w-full h-20 rounded-md border border-[#c9a84c]/25 bg-black/50 p-2 text-sm text-neutral-100" />
+              <Label className="text-[10px] uppercase tracking-widest text-[#c9a84c]/80">
+                Diagnóstico
+              </Label>
+              <textarea
+                value={histForm.diagnostico}
+                onChange={(e) =>
+                  setHistForm({ ...histForm, diagnostico: e.target.value })
+                }
+                className="w-full h-20 rounded-md border border-[#c9a84c]/25 bg-black/50 p-2 text-sm text-neutral-100"
+              />
             </div>
 
             <div className="sm:col-span-2 space-y-1.5">
-              <Label className="text-[10px] uppercase tracking-widest text-[#c9a84c]/80">Recomendaciones</Label>
-              <textarea value={histForm.recomendaciones} onChange={(e) => setHistForm({ ...histForm, recomendaciones: e.target.value })} className="w-full h-20 rounded-md border border-[#c9a84c]/25 bg-black/50 p-2 text-sm text-neutral-100" />
+              <Label className="text-[10px] uppercase tracking-widest text-[#c9a84c]/80">
+                Recomendaciones
+              </Label>
+              <textarea
+                value={histForm.recomendaciones}
+                onChange={(e) =>
+                  setHistForm({ ...histForm, recomendaciones: e.target.value })
+                }
+                className="w-full h-20 rounded-md border border-[#c9a84c]/25 bg-black/50 p-2 text-sm text-neutral-100"
+              />
             </div>
 
             <DialogFooter className="sm:col-span-2">
-              <Button type="button" variant="ghost" onClick={() => setOpenNewHist(false)} className="text-neutral-300 hover:bg-neutral-800">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setOpenNewHist(false)}
+                className="text-neutral-300 hover:bg-neutral-800"
+              >
                 Cancelar
               </Button>
-              <Button type="submit" className="bg-[#c9a84c] text-neutral-900 hover:bg-[#e6c66a]">
+              <Button
+                type="submit"
+                className="bg-[#c9a84c] text-neutral-900 hover:bg-[#e6c66a]"
+              >
                 Guardar
               </Button>
             </DialogFooter>
@@ -819,10 +1162,19 @@ function Dashboard() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!viewingHist} onOpenChange={(o) => !o && setViewingHist(null)}>
+      <Dialog
+        open={!!viewingHist}
+        onOpenChange={(o) => !o && setViewingHist(null)}
+      >
         <DialogContent className="max-w-2xl border-[#c9a84c]/30 bg-neutral-950 text-neutral-100">
           <DialogHeader>
-            <DialogTitle style={{ color: "#f0d78c", fontFamily: "'Rajdhani', sans-serif", letterSpacing: "0.1em" }}>
+            <DialogTitle
+              style={{
+                color: "#f0d78c",
+                fontFamily: "'Rajdhani', sans-serif",
+                letterSpacing: "0.1em",
+              }}
+            >
               HISTORIA CLÍNICA · {viewingHist?.id}
             </DialogTitle>
           </DialogHeader>
@@ -836,42 +1188,67 @@ function Dashboard() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="rounded-lg bg-black/40 p-4 border border-[#c9a84c]/20">
-                  <h4 className="text-[10px] font-bold text-[#f0d78c] uppercase mb-2">OD</h4>
+                  <h4 className="text-[10px] font-bold text-[#f0d78c] uppercase mb-2">
+                    OD
+                  </h4>
                   <DetailRow k="Esfera" v={viewingHist.od_esfera} />
                   <DetailRow k="Cilindro" v={viewingHist.od_cilindro} />
                   <DetailRow k="Eje" v={viewingHist.od_eje} />
                 </div>
                 <div className="rounded-lg bg-black/40 p-4 border border-[#c9a84c]/20">
-                  <h4 className="text-[10px] font-bold text-[#f0d78c] uppercase mb-2">OI</h4>
+                  <h4 className="text-[10px] font-bold text-[#f0d78c] uppercase mb-2">
+                    OI
+                  </h4>
                   <DetailRow k="Esfera" v={viewingHist.oi_esfera} />
                   <DetailRow k="Cilindro" v={viewingHist.oi_cilindro} />
                   <DetailRow k="Eje" v={viewingHist.oi_eje} />
                 </div>
               </div>
               <div className="rounded-lg bg-black/40 p-4 border border-[#c9a84c]/20">
-                  <h4 className="text-[10px] font-bold text-[#f0d78c] uppercase mb-2">Diagnóstico</h4>
-                  <p className="text-neutral-300">{viewingHist.diagnostico}</p>
-                  <h4 className="text-[10px] font-bold text-[#f0d78c] uppercase mt-4 mb-2">Recomendaciones</h4>
-                  <p className="text-neutral-300">{viewingHist.recomendaciones}</p>
+                <h4 className="text-[10px] font-bold text-[#f0d78c] uppercase mb-2">
+                  Diagnóstico
+                </h4>
+                <p className="text-neutral-300">{viewingHist.diagnostico}</p>
+                <h4 className="text-[10px] font-bold text-[#f0d78c] uppercase mt-4 mb-2">
+                  Recomendaciones
+                </h4>
+                <p className="text-neutral-300">
+                  {viewingHist.recomendaciones}
+                </p>
               </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!confirmDeleteHist} onOpenChange={(o) => !o && setConfirmDeleteHist(null)}>
+      <Dialog
+        open={!!confirmDeleteHist}
+        onOpenChange={(o) => !o && setConfirmDeleteHist(null)}
+      >
         <DialogContent className="border-[#c9a84c]/30 bg-neutral-950 text-neutral-100">
           <DialogHeader>
-            <DialogTitle className="text-red-400">Eliminar historia</DialogTitle>
+            <DialogTitle className="text-red-400">
+              Eliminar historia
+            </DialogTitle>
             <DialogDescription className="text-neutral-400">
-              ¿Eliminar historia {confirmDeleteHist?.id}? Esta acción no se puede deshacer.
+              ¿Eliminar historia {confirmDeleteHist?.id}? Esta acción no se
+              puede deshacer.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setConfirmDeleteHist(null)} className="text-neutral-300 hover:bg-neutral-800">
+            <Button
+              variant="ghost"
+              onClick={() => setConfirmDeleteHist(null)}
+              className="text-neutral-300 hover:bg-neutral-800"
+            >
               Cancelar
             </Button>
-            <Button onClick={() => confirmDeleteHist && handleDeleteHistoria(confirmDeleteHist)} className="bg-red-500/90 text-white hover:bg-red-500">
+            <Button
+              onClick={() =>
+                confirmDeleteHist && handleDeleteHistoria(confirmDeleteHist)
+              }
+              className="bg-red-500/90 text-white hover:bg-red-500"
+            >
               Eliminar
             </Button>
           </DialogFooter>
@@ -884,27 +1261,81 @@ function Dashboard() {
       <Dialog open={openNew} onOpenChange={setOpenNew}>
         <DialogContent className="max-w-lg border-[#c9a84c]/30 bg-neutral-950 text-neutral-100">
           <DialogHeader>
-            <DialogTitle style={{ color: "#f0d78c", fontFamily: "'Rajdhani', sans-serif", letterSpacing: "0.1em" }}>
+            <DialogTitle
+              style={{
+                color: "#f0d78c",
+                fontFamily: "'Rajdhani', sans-serif",
+                letterSpacing: "0.1em",
+              }}
+            >
               NUEVO PACIENTE
             </DialogTitle>
             <DialogDescription className="text-neutral-400">
               Registra un nuevo paciente en el sistema.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleCreate} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Field label="Nombre" value={form.nombre} onChange={(v) => setForm({ ...form, nombre: v })} required />
-            <Field label="Cédula" value={form.cedula} onChange={(v) => setForm({ ...form, cedula: v })} required />
-            <Field label="Teléfono" value={form.telefono} onChange={(v) => setForm({ ...form, telefono: v })} />
-            <Field label="WhatsApp" value={form.whatsapp} onChange={(v) => setForm({ ...form, whatsapp: v })} />
-            <Field label="Correo" type="email" value={form.correo} onChange={(v) => setForm({ ...form, correo: v })} />
-            <Field label="Dirección" value={form.direccion} onChange={(v) => setForm({ ...form, direccion: v })} className="sm:col-span-2" />
-            <Field label="Fecha de ingreso" type="date" value={form.fechaIngreso} onChange={(v) => setForm({ ...form, fechaIngreso: v })} />
-            <Field label="Encargado" value={form.encargado} onChange={(v) => setForm({ ...form, encargado: v })} />
+          <form
+            onSubmit={handleCreate}
+            className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+          >
+            <Field
+              label="Nombre"
+              value={form.nombre}
+              onChange={(v) => setForm({ ...form, nombre: v })}
+              required
+            />
+            <Field
+              label="Cédula"
+              value={form.cedula}
+              onChange={(v) => setForm({ ...form, cedula: v })}
+              required
+            />
+            <Field
+              label="Teléfono"
+              value={form.telefono}
+              onChange={(v) => setForm({ ...form, telefono: v })}
+            />
+            <Field
+              label="WhatsApp"
+              value={form.whatsapp}
+              onChange={(v) => setForm({ ...form, whatsapp: v })}
+            />
+            <Field
+              label="Correo"
+              type="email"
+              value={form.correo}
+              onChange={(v) => setForm({ ...form, correo: v })}
+            />
+            <Field
+              label="Dirección"
+              value={form.direccion}
+              onChange={(v) => setForm({ ...form, direccion: v })}
+              className="sm:col-span-2"
+            />
+            <Field
+              label="Fecha de ingreso"
+              type="date"
+              value={form.fechaIngreso}
+              onChange={(v) => setForm({ ...form, fechaIngreso: v })}
+            />
+            <Field
+              label="Encargado"
+              value={form.encargado}
+              onChange={(v) => setForm({ ...form, encargado: v })}
+            />
             <DialogFooter className="sm:col-span-2">
-              <Button type="button" variant="ghost" onClick={() => setOpenNew(false)} className="text-neutral-300 hover:bg-neutral-800">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setOpenNew(false)}
+                className="text-neutral-300 hover:bg-neutral-800"
+              >
                 Cancelar
               </Button>
-              <Button type="submit" className="bg-[#c9a84c] text-neutral-900 hover:bg-[#e6c66a]">
+              <Button
+                type="submit"
+                className="bg-[#c9a84c] text-neutral-900 hover:bg-[#e6c66a]"
+              >
                 Guardar paciente
               </Button>
             </DialogFooter>
@@ -916,7 +1347,13 @@ function Dashboard() {
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent className="max-w-lg border-[#c9a84c]/30 bg-neutral-950 text-neutral-100">
           <DialogHeader>
-            <DialogTitle style={{ color: "#f0d78c", fontFamily: "'Rajdhani', sans-serif", letterSpacing: "0.1em" }}>
+            <DialogTitle
+              style={{
+                color: "#f0d78c",
+                fontFamily: "'Rajdhani', sans-serif",
+                letterSpacing: "0.1em",
+              }}
+            >
               EDITAR PACIENTE · {editing?.id}
             </DialogTitle>
             <DialogDescription className="text-neutral-400">
@@ -924,20 +1361,68 @@ function Dashboard() {
             </DialogDescription>
           </DialogHeader>
           {editing && (
-            <form onSubmit={handleUpdate} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field label="Nombre" value={editing.nombre} onChange={(v) => setEditing({ ...editing, nombre: v })} required />
-              <Field label="Cédula" value={editing.cedula} onChange={(v) => setEditing({ ...editing, cedula: v })} required />
-              <Field label="Teléfono" value={editing.telefono} onChange={(v) => setEditing({ ...editing, telefono: v })} />
-              <Field label="WhatsApp" value={editing.whatsapp} onChange={(v) => setEditing({ ...editing, whatsapp: v })} />
-              <Field label="Correo" type="email" value={editing.correo} onChange={(v) => setEditing({ ...editing, correo: v })} />
-              <Field label="Dirección" value={editing.direccion} onChange={(v) => setEditing({ ...editing, direccion: v })} className="sm:col-span-2" />
-              <Field label="Fecha de ingreso" type="date" value={editing.fechaIngreso} onChange={(v) => setEditing({ ...editing, fechaIngreso: v })} />
-              <Field label="Encargado" value={editing.encargado} onChange={(v) => setEditing({ ...editing, encargado: v })} />
+            <form
+              onSubmit={handleUpdate}
+              className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+            >
+              <Field
+                label="Nombre"
+                value={editing.nombre}
+                onChange={(v) => setEditing({ ...editing, nombre: v })}
+                required
+              />
+              <Field
+                label="Cédula"
+                value={editing.cedula}
+                onChange={(v) => setEditing({ ...editing, cedula: v })}
+                required
+              />
+              <Field
+                label="Teléfono"
+                value={editing.telefono}
+                onChange={(v) => setEditing({ ...editing, telefono: v })}
+              />
+              <Field
+                label="WhatsApp"
+                value={editing.whatsapp}
+                onChange={(v) => setEditing({ ...editing, whatsapp: v })}
+              />
+              <Field
+                label="Correo"
+                type="email"
+                value={editing.correo}
+                onChange={(v) => setEditing({ ...editing, correo: v })}
+              />
+              <Field
+                label="Dirección"
+                value={editing.direccion}
+                onChange={(v) => setEditing({ ...editing, direccion: v })}
+                className="sm:col-span-2"
+              />
+              <Field
+                label="Fecha de ingreso"
+                type="date"
+                value={editing.fechaIngreso}
+                onChange={(v) => setEditing({ ...editing, fechaIngreso: v })}
+              />
+              <Field
+                label="Encargado"
+                value={editing.encargado}
+                onChange={(v) => setEditing({ ...editing, encargado: v })}
+              />
               <DialogFooter className="sm:col-span-2">
-                <Button type="button" variant="ghost" onClick={() => setEditing(null)} className="text-neutral-300 hover:bg-neutral-800">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setEditing(null)}
+                  className="text-neutral-300 hover:bg-neutral-800"
+                >
                   Cancelar
                 </Button>
-                <Button type="submit" className="bg-[#c9a84c] text-neutral-900 hover:bg-[#e6c66a]">
+                <Button
+                  type="submit"
+                  className="bg-[#c9a84c] text-neutral-900 hover:bg-[#e6c66a]"
+                >
                   Guardar cambios
                 </Button>
               </DialogFooter>
@@ -950,7 +1435,13 @@ function Dashboard() {
       <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
         <DialogContent className="max-w-lg border-[#c9a84c]/30 bg-neutral-950 text-neutral-100">
           <DialogHeader>
-            <DialogTitle style={{ color: "#f0d78c", fontFamily: "'Rajdhani', sans-serif", letterSpacing: "0.1em" }}>
+            <DialogTitle
+              style={{
+                color: "#f0d78c",
+                fontFamily: "'Rajdhani', sans-serif",
+                letterSpacing: "0.1em",
+              }}
+            >
               PACIENTE · {viewing?.id}
             </DialogTitle>
           </DialogHeader>
@@ -965,17 +1456,29 @@ function Dashboard() {
               <DetailRow k="Ingreso" v={viewing.fechaIngreso} />
               <DetailRow k="Encargado" v={viewing.encargado} />
               <div className="pt-3">
-                <div className="mb-2 text-[10px] uppercase tracking-widest text-[#c9a84c]/70">Citas asociadas</div>
+                <div className="mb-2 text-[10px] uppercase tracking-widest text-[#c9a84c]/70">
+                  Citas asociadas
+                </div>
                 <div className="max-h-40 space-y-1 overflow-auto">
-                  {appointments.filter((a) => a.patientId === viewing.id).map((a) => (
-                    <div key={a.id} className="flex items-center justify-between rounded border border-[#c9a84c]/15 bg-black/40 px-2 py-1 text-xs">
-                      <span className="font-mono text-[#f0d78c]">{a.id}</span>
-                      <span className="text-neutral-300">{a.fecha} · {a.hora}</span>
-                      <span className="text-neutral-500">{a.estado}</span>
+                  {appointments
+                    .filter((a) => a.patientId === viewing.id)
+                    .map((a) => (
+                      <div
+                        key={a.id}
+                        className="flex items-center justify-between rounded border border-[#c9a84c]/15 bg-black/40 px-2 py-1 text-xs"
+                      >
+                        <span className="font-mono text-[#f0d78c]">{a.id}</span>
+                        <span className="text-neutral-300">
+                          {a.fecha} · {a.hora}
+                        </span>
+                        <span className="text-neutral-500">{a.estado}</span>
+                      </div>
+                    ))}
+                  {appointments.filter((a) => a.patientId === viewing.id)
+                    .length === 0 && (
+                    <div className="text-xs text-neutral-500">
+                      Sin citas registradas.
                     </div>
-                  ))}
-                  {appointments.filter((a) => a.patientId === viewing.id).length === 0 && (
-                    <div className="text-xs text-neutral-500">Sin citas registradas.</div>
                   )}
                 </div>
               </div>
@@ -997,19 +1500,33 @@ function Dashboard() {
       </Dialog>
 
       {/* Delete patient confirm */}
-      <Dialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
+      <Dialog
+        open={!!confirmDelete}
+        onOpenChange={(o) => !o && setConfirmDelete(null)}
+      >
         <DialogContent className="border-[#c9a84c]/30 bg-neutral-950 text-neutral-100">
           <DialogHeader>
-            <DialogTitle className="text-red-400">Eliminar paciente</DialogTitle>
+            <DialogTitle className="text-red-400">
+              Eliminar paciente
+            </DialogTitle>
             <DialogDescription className="text-neutral-400">
-              ¿Seguro que quieres eliminar a <span className="text-neutral-100">{confirmDelete?.nombre}</span>? Esta acción no se puede deshacer.
+              ¿Seguro que quieres eliminar a{" "}
+              <span className="text-neutral-100">{confirmDelete?.nombre}</span>?
+              Esta acción no se puede deshacer.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setConfirmDelete(null)} className="text-neutral-300 hover:bg-neutral-800">
+            <Button
+              variant="ghost"
+              onClick={() => setConfirmDelete(null)}
+              className="text-neutral-300 hover:bg-neutral-800"
+            >
               Cancelar
             </Button>
-            <Button onClick={() => confirmDelete && handleDelete(confirmDelete)} className="bg-red-500/90 text-white hover:bg-red-500">
+            <Button
+              onClick={() => confirmDelete && handleDelete(confirmDelete)}
+              className="bg-red-500/90 text-white hover:bg-red-500"
+            >
               Eliminar
             </Button>
           </DialogFooter>
@@ -1020,20 +1537,37 @@ function Dashboard() {
       <Dialog open={openNewAppt} onOpenChange={setOpenNewAppt}>
         <DialogContent className="max-w-lg border-[#c9a84c]/30 bg-neutral-950 text-neutral-100">
           <DialogHeader>
-            <DialogTitle style={{ color: "#f0d78c", fontFamily: "'Rajdhani', sans-serif", letterSpacing: "0.1em" }}>
+            <DialogTitle
+              style={{
+                color: "#f0d78c",
+                fontFamily: "'Rajdhani', sans-serif",
+                letterSpacing: "0.1em",
+              }}
+            >
               NUEVA CITA
             </DialogTitle>
             <DialogDescription className="text-neutral-400">
               Programa una cita para un paciente.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleCreateAppt} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <form
+            onSubmit={handleCreateAppt}
+            className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+          >
             <div className="space-y-1.5 sm:col-span-2 relative">
-              <Label className="text-[10px] uppercase tracking-widest text-[#c9a84c]">Paciente</Label>
+              <Label className="text-[10px] uppercase tracking-widest text-[#c9a84c]">
+                Paciente
+              </Label>
               <Input
                 placeholder="Busca por ID, nombre o cédula..."
                 value={apptForm.patientId}
-                onChange={(e) => setApptForm({ ...apptForm, patientId: e.target.value, patientName: "" })}
+                onChange={(e) =>
+                  setApptForm({
+                    ...apptForm,
+                    patientId: e.target.value,
+                    patientName: "",
+                  })
+                }
                 className="h-9 w-full rounded-md border border-[#c9a84c]/20 bg-neutral-900 px-3 text-sm text-neutral-100 focus:border-[#c9a84c] focus:outline-none"
               />
               {apptForm.patientId && !apptForm.patientName && (
@@ -1051,23 +1585,61 @@ function Dashboard() {
                       <li
                         key={p.id}
                         className="cursor-pointer px-3 py-2 text-sm text-neutral-100 hover:bg-[#c9a84c]/20"
-                        onClick={() => setApptForm({ ...apptForm, patientId: p.id, patientName: p.nombre, cedula: p.cedula, encargado: p.encargado })}
+                        onClick={() =>
+                          setApptForm({
+                            ...apptForm,
+                            patientId: p.id,
+                            patientName: p.nombre,
+                            cedula: p.cedula,
+                            encargado: p.encargado,
+                          })
+                        }
                       >
-                        <span className="font-mono text-[#f0d78c]">{p.id}</span> · {p.nombre}
+                        <span className="font-mono text-[#f0d78c]">{p.id}</span>{" "}
+                        · {p.nombre}
                       </li>
                     ))}
                 </ul>
               )}
             </div>
-            <Field label="Fecha" type="date" value={apptForm.fecha} onChange={(v) => setApptForm({ ...apptForm, fecha: v })} required />
-            <Field label="Hora" type="time" value={apptForm.hora} onChange={(v) => setApptForm({ ...apptForm, hora: v })} required />
-            <Field label="Motivo" value={apptForm.motivo} onChange={(v) => setApptForm({ ...apptForm, motivo: v })} className="sm:col-span-2" required />
-            <Field label="Encargado" value={apptForm.encargado} onChange={(v) => setApptForm({ ...apptForm, encargado: v })} />
+            <Field
+              label="Fecha"
+              type="date"
+              value={apptForm.fecha}
+              onChange={(v) => setApptForm({ ...apptForm, fecha: v })}
+              required
+            />
+            <Field
+              label="Hora"
+              type="time"
+              value={apptForm.hora}
+              onChange={(v) => setApptForm({ ...apptForm, hora: v })}
+              required
+            />
+            <Field
+              label="Motivo"
+              value={apptForm.motivo}
+              onChange={(v) => setApptForm({ ...apptForm, motivo: v })}
+              className="sm:col-span-2"
+              required
+            />
+            <Field
+              label="Encargado"
+              value={apptForm.encargado}
+              onChange={(v) => setApptForm({ ...apptForm, encargado: v })}
+            />
             <div className="space-y-1.5">
-              <Label className="text-[10px] uppercase tracking-widest text-[#c9a84c]/80">Estado</Label>
+              <Label className="text-[10px] uppercase tracking-widest text-[#c9a84c]/80">
+                Estado
+              </Label>
               <select
                 value={apptForm.estado}
-                onChange={(e) => setApptForm({ ...apptForm, estado: e.target.value as Appointment["estado"] })}
+                onChange={(e) =>
+                  setApptForm({
+                    ...apptForm,
+                    estado: e.target.value as Appointment["estado"],
+                  })
+                }
                 className="h-9 w-full rounded-md border border-[#c9a84c]/25 bg-black/50 px-3 text-sm text-neutral-100 focus:outline-none focus:ring-2 focus:ring-[#c9a84c]/40"
               >
                 <option>Pendiente</option>
@@ -1077,10 +1649,18 @@ function Dashboard() {
               </select>
             </div>
             <DialogFooter className="sm:col-span-2">
-              <Button type="button" variant="ghost" onClick={() => setOpenNewAppt(false)} className="text-neutral-300 hover:bg-neutral-800">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setOpenNewAppt(false)}
+                className="text-neutral-300 hover:bg-neutral-800"
+              >
                 Cancelar
               </Button>
-              <Button type="submit" className="bg-[#c9a84c] text-neutral-900 hover:bg-[#e6c66a]">
+              <Button
+                type="submit"
+                className="bg-[#c9a84c] text-neutral-900 hover:bg-[#e6c66a]"
+              >
                 Guardar cita
               </Button>
             </DialogFooter>
@@ -1089,10 +1669,19 @@ function Dashboard() {
       </Dialog>
 
       {/* Edit appointment */}
-      <Dialog open={!!editingAppt} onOpenChange={(o) => !o && setEditingAppt(null)}>
+      <Dialog
+        open={!!editingAppt}
+        onOpenChange={(o) => !o && setEditingAppt(null)}
+      >
         <DialogContent className="max-w-lg border-[#c9a84c]/30 bg-neutral-950 text-neutral-100">
           <DialogHeader>
-            <DialogTitle style={{ color: "#f0d78c", fontFamily: "'Rajdhani', sans-serif", letterSpacing: "0.1em" }}>
+            <DialogTitle
+              style={{
+                color: "#f0d78c",
+                fontFamily: "'Rajdhani', sans-serif",
+                letterSpacing: "0.1em",
+              }}
+            >
               EDITAR CITA · {editingAppt?.id}
             </DialogTitle>
             <DialogDescription className="text-neutral-400">
@@ -1100,43 +1689,103 @@ function Dashboard() {
             </DialogDescription>
           </DialogHeader>
           {editingAppt && (
-            <form onSubmit={handleUpdateAppt} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <form
+              onSubmit={handleUpdateAppt}
+              className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+            >
               <div className="space-y-1.5 sm:col-span-2 relative">
-                <Label className="text-[10px] uppercase tracking-widest text-[#c9a84c]/80">Paciente (Cédula)</Label>
+                <Label className="text-[10px] uppercase tracking-widest text-[#c9a84c]/80">
+                  Paciente (Cédula)
+                </Label>
                 <Input
                   placeholder="Cédula del paciente..."
                   value={editingAppt.cedula}
-                  onChange={(e) => setEditingAppt({ ...editingAppt, cedula: e.target.value })}
+                  onChange={(e) =>
+                    setEditingAppt({ ...editingAppt, cedula: e.target.value })
+                  }
                   className="h-9 w-full rounded-md border border-[#c9a84c]/25 bg-black/50 px-3 text-sm text-neutral-100"
                 />
-                {editingAppt.cedula && !patients.find((p) => p.cedula === editingAppt.cedula) && (
-                  <ul className="absolute z-50 mt-1 max-h-40 w-full overflow-auto rounded-md border border-[#c9a84c]/20 bg-neutral-900 shadow-xl">
-                    {patients
-                      .filter((p) => p.cedula.includes(editingAppt.cedula) || p.nombre.toLowerCase().includes(editingAppt.cedula.toLowerCase()))
-                      .map((p) => (
-                        <li
-                          key={p.id}
-                          className="cursor-pointer px-3 py-2 text-sm text-neutral-100 hover:bg-[#c9a84c]/20"
-                          onClick={() => setEditingAppt({ ...editingAppt, cedula: p.cedula, encargado: p.encargado })}
-                        >
-                          <span className="font-mono text-[#f0d78c]">{p.cedula}</span> — {p.nombre}
-                        </li>
-                      ))}
-                  </ul>
-                )}
+                {editingAppt.cedula &&
+                  !patients.find((p) => p.cedula === editingAppt.cedula) && (
+                    <ul className="absolute z-50 mt-1 max-h-40 w-full overflow-auto rounded-md border border-[#c9a84c]/20 bg-neutral-900 shadow-xl">
+                      {patients
+                        .filter(
+                          (p) =>
+                            p.cedula.includes(editingAppt.cedula) ||
+                            p.nombre
+                              .toLowerCase()
+                              .includes(editingAppt.cedula.toLowerCase()),
+                        )
+                        .map((p) => (
+                          <li
+                            key={p.id}
+                            className="cursor-pointer px-3 py-2 text-sm text-neutral-100 hover:bg-[#c9a84c]/20"
+                            onClick={() =>
+                              setEditingAppt({
+                                ...editingAppt,
+                                cedula: p.cedula,
+                                encargado: p.encargado,
+                              })
+                            }
+                          >
+                            <span className="font-mono text-[#f0d78c]">
+                              {p.cedula}
+                            </span>{" "}
+                            — {p.nombre}
+                          </li>
+                        ))}
+                    </ul>
+                  )}
                 {patients.find((p) => p.cedula === editingAppt.cedula) && (
-                  <p className="text-xs text-emerald-400 mt-1">✓ {patients.find((p) => p.cedula === editingAppt.cedula)?.nombre}</p>
+                  <p className="text-xs text-emerald-400 mt-1">
+                    ✓{" "}
+                    {
+                      patients.find((p) => p.cedula === editingAppt.cedula)
+                        ?.nombre
+                    }
+                  </p>
                 )}
               </div>
-              <Field label="Fecha" type="date" value={editingAppt.fecha} onChange={(v) => setEditingAppt({ ...editingAppt, fecha: v })} required />
-              <Field label="Hora" type="time" value={editingAppt.hora} onChange={(v) => setEditingAppt({ ...editingAppt, hora: v })} required />
-              <Field label="Motivo" value={editingAppt.motivo} onChange={(v) => setEditingAppt({ ...editingAppt, motivo: v })} className="sm:col-span-2" required />
-              <Field label="Encargado" value={editingAppt.encargado} onChange={(v) => setEditingAppt({ ...editingAppt, encargado: v })} />
+              <Field
+                label="Fecha"
+                type="date"
+                value={editingAppt.fecha}
+                onChange={(v) => setEditingAppt({ ...editingAppt, fecha: v })}
+                required
+              />
+              <Field
+                label="Hora"
+                type="time"
+                value={editingAppt.hora}
+                onChange={(v) => setEditingAppt({ ...editingAppt, hora: v })}
+                required
+              />
+              <Field
+                label="Motivo"
+                value={editingAppt.motivo}
+                onChange={(v) => setEditingAppt({ ...editingAppt, motivo: v })}
+                className="sm:col-span-2"
+                required
+              />
+              <Field
+                label="Encargado"
+                value={editingAppt.encargado}
+                onChange={(v) =>
+                  setEditingAppt({ ...editingAppt, encargado: v })
+                }
+              />
               <div className="space-y-1.5">
-                <Label className="text-[10px] uppercase tracking-widest text-[#c9a84c]/80">Estado</Label>
+                <Label className="text-[10px] uppercase tracking-widest text-[#c9a84c]/80">
+                  Estado
+                </Label>
                 <select
                   value={editingAppt.estado}
-                  onChange={(e) => setEditingAppt({ ...editingAppt, estado: e.target.value as Appointment["estado"] })}
+                  onChange={(e) =>
+                    setEditingAppt({
+                      ...editingAppt,
+                      estado: e.target.value as Appointment["estado"],
+                    })
+                  }
                   className="h-9 w-full rounded-md border border-[#c9a84c]/25 bg-black/50 px-3 text-sm text-neutral-100"
                 >
                   <option>Pendiente</option>
@@ -1146,10 +1795,18 @@ function Dashboard() {
                 </select>
               </div>
               <DialogFooter className="sm:col-span-2">
-                <Button type="button" variant="ghost" onClick={() => setEditingAppt(null)} className="text-neutral-300 hover:bg-neutral-800">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setEditingAppt(null)}
+                  className="text-neutral-300 hover:bg-neutral-800"
+                >
                   Cancelar
                 </Button>
-                <Button type="submit" className="bg-[#c9a84c] text-neutral-900 hover:bg-[#e6c66a]">
+                <Button
+                  type="submit"
+                  className="bg-[#c9a84c] text-neutral-900 hover:bg-[#e6c66a]"
+                >
                   Guardar cambios
                 </Button>
               </DialogFooter>
@@ -1159,19 +1816,33 @@ function Dashboard() {
       </Dialog>
 
       {/* Delete appointment confirm */}
-      <Dialog open={!!confirmDeleteAppt} onOpenChange={(o) => !o && setConfirmDeleteAppt(null)}>
+      <Dialog
+        open={!!confirmDeleteAppt}
+        onOpenChange={(o) => !o && setConfirmDeleteAppt(null)}
+      >
         <DialogContent className="border-[#c9a84c]/30 bg-neutral-950 text-neutral-100">
           <DialogHeader>
             <DialogTitle className="text-red-400">Eliminar cita</DialogTitle>
             <DialogDescription className="text-neutral-400">
-              ¿Eliminar la cita <span className="text-neutral-100">{confirmDeleteAppt?.id}</span> de {confirmDeleteAppt?.patientName || confirmDeleteAppt?.cedula}?
+              ¿Eliminar la cita{" "}
+              <span className="text-neutral-100">{confirmDeleteAppt?.id}</span>{" "}
+              de {confirmDeleteAppt?.patientName || confirmDeleteAppt?.cedula}?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setConfirmDeleteAppt(null)} className="text-neutral-300 hover:bg-neutral-800">
+            <Button
+              variant="ghost"
+              onClick={() => setConfirmDeleteAppt(null)}
+              className="text-neutral-300 hover:bg-neutral-800"
+            >
               Cancelar
             </Button>
-            <Button onClick={() => confirmDeleteAppt && handleDeleteAppt(confirmDeleteAppt)} className="bg-red-500/90 text-white hover:bg-red-500">
+            <Button
+              onClick={() =>
+                confirmDeleteAppt && handleDeleteAppt(confirmDeleteAppt)
+              }
+              className="bg-red-500/90 text-white hover:bg-red-500"
+            >
               Eliminar
             </Button>
           </DialogFooter>
@@ -1186,18 +1857,34 @@ function Dashboard() {
 function DetailRow({ k, v }: { k: string; v: string }) {
   return (
     <div className="flex items-start justify-between gap-4 border-b border-[#c9a84c]/10 py-1.5">
-      <span className="text-[10px] uppercase tracking-widest text-[#c9a84c]/70">{k}</span>
+      <span className="text-[10px] uppercase tracking-widest text-[#c9a84c]/70">
+        {k}
+      </span>
       <span className="text-right text-neutral-200">{v}</span>
     </div>
   );
 }
 
-function StatCard({ label, value, icon, className = "" }: { label: string; value: number; icon: React.ReactNode; className?: string }) {
+function StatCard({
+  label,
+  value,
+  icon,
+  className = "",
+}: {
+  label: string;
+  value: number;
+  icon: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <div className={`devi-hud-corner devi-fade-up rounded-xl border border-[#c9a84c]/25 bg-neutral-950/60 p-5 backdrop-blur ${className}`}>
+    <div
+      className={`devi-hud-corner devi-fade-up rounded-xl border border-[#c9a84c]/25 bg-neutral-950/60 p-5 backdrop-blur ${className}`}
+    >
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-[10px] uppercase tracking-[0.3em] text-neutral-500">{label}</div>
+          <div className="text-[10px] uppercase tracking-[0.3em] text-neutral-500">
+            {label}
+          </div>
           <div
             className="mt-2 text-3xl font-bold"
             style={{ fontFamily: "'Orbitron', sans-serif", color: "#f0d78c" }}
@@ -1213,7 +1900,17 @@ function StatCard({ label, value, icon, className = "" }: { label: string; value
   );
 }
 
-function IconBtn({ children, label, onClick, danger }: { children: React.ReactNode; label: string; onClick?: () => void; danger?: boolean }) {
+function IconBtn({
+  children,
+  label,
+  onClick,
+  danger,
+}: {
+  children: React.ReactNode;
+  label: string;
+  onClick?: () => void;
+  danger?: boolean;
+}) {
   return (
     <button
       type="button"
@@ -1260,7 +1957,17 @@ function WhatsAppLink({ phone, message }: { phone: string; message: string }) {
   );
 }
 
-function SidebarBtn({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string }) {
+function SidebarBtn({
+  active,
+  onClick,
+  icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+}) {
   return (
     <button
       onClick={onClick}
@@ -1278,7 +1985,17 @@ function SidebarBtn({ active, onClick, icon, label }: { active: boolean; onClick
   );
 }
 
-function MobileNavBtn({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string }) {
+function MobileNavBtn({
+  active,
+  onClick,
+  icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+}) {
   return (
     <button
       onClick={onClick}
@@ -1293,7 +2010,14 @@ function MobileNavBtn({ active, onClick, icon, label }: { active: boolean; onCli
   );
 }
 
-function Field({ label, value, onChange, type = "text", className = "", required }: {
+function Field({
+  label,
+  value,
+  onChange,
+  type = "text",
+  className = "",
+  required,
+}: {
   label: string;
   value: string;
   onChange: (v: string) => void;
@@ -1303,7 +2027,9 @@ function Field({ label, value, onChange, type = "text", className = "", required
 }) {
   return (
     <div className={"space-y-1.5 " + className}>
-      <Label className="text-[10px] uppercase tracking-widest text-[#c9a84c]/80">{label}</Label>
+      <Label className="text-[10px] uppercase tracking-widest text-[#c9a84c]/80">
+        {label}
+      </Label>
       <Input
         type={type}
         value={value}
